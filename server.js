@@ -5,6 +5,7 @@ import dotenv from "dotenv"
 
 import authRoutes from "./routes/AuthRoutes.js"
 import entryRoutes from "./routes/EntryRoutes.js";
+import locationRoutes from "./routes/LocationRoutes.js";
 
 dotenv.config()
 
@@ -43,6 +44,7 @@ mongoose.connect(process.env.MONGO_URI)
 // Routes
 app.use("/api/auth", authRoutes)
 app.use("/api/entries", entryRoutes)
+app.use("/api/location", locationRoutes);
 
 app.get("/",(req,res)=>{
     res.send("✅ Backend running")
