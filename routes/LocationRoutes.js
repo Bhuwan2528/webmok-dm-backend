@@ -185,6 +185,29 @@ router.delete("/:id", verifyAdmin, async (req, res) => {
 });
 
 
+// PUBLIC LIST FOR USERS
+
+router.get("/public", async (req,res)=>{
+
+  try{
+
+    const pages = await Location.find({
+      status:"published"
+    }).sort({createdAt:-1})
+
+    res.json(pages)
+
+  }catch(err){
+
+    res.status(500).json({
+      message:"Server error"
+    })
+
+  }
+
+})
+
+
 // =============================
 // PUBLIC PAGE BY SLUG
 // =============================
