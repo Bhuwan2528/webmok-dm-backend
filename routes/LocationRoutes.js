@@ -11,10 +11,20 @@ const router = express.Router();
 router.post("/", verifyAdmin, async (req, res) => {
   try {
 
-    const { seoTitle, metaDescription, metaKeywords, slug, content, status, field } = req.body;
+    const {
+      seoTitle,
+      metaDescription,
+      metaKeywords,
+      slug,
+      content,
+      status,
+      field
+    } = req.body;
 
-    if (!seoTitle || !metaDescription || !slug || !content || !field || !metaKeywords) {
-      return res.status(400).json({ message: "All fields required" });
+
+    // Required validation (metaKeywords OPTIONAL rakha hai)
+    if (!seoTitle || !metaDescription || !slug || !content || !field) {
+      return res.status(400).json({ message: "Required fields missing" });
     }
 
     // slug duplicate check
@@ -25,21 +35,25 @@ router.post("/", verifyAdmin, async (req, res) => {
     }
 
     const page = new Location({
-      seoTitle,
+      seoTitle: seoTitle.trim(),
       metaDescription,
-      metaKeywords,
-      slug,
+      metaKeywords: metaKeywords || "", // ✅ always save
+      slug: slug.toLowerCase().trim(),
       content,
-      status,
-      field   // ✅ added
+      status: status || "published",
+      field
     });
 
     await page.save();
 
-    res.json({ success: true, message: "Page created", page });
+    res.json({
+      success: true,
+      message: "Page created successfully",
+      page
+    });
 
   } catch (err) {
-    console.error(err);
+    console.error("CREATE ERROR:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -58,6 +72,7 @@ router.get("/", verifyAdmin, async (req, res) => {
     res.json(pages);
 
   } catch (err) {
+    console.error("GET ALL ERROR:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -78,24 +93,34 @@ router.get("/admin/:id", verifyAdmin, async (req, res) => {
     res.json(page);
 
   } catch (err) {
+    console.error("GET BY ID ERROR:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
 
 
 // =============================
-// UPDATE PAGE
+// UPDATE PAGE (SAFE UPDATE)
 // =============================
 router.put("/:id", verifyAdmin, async (req, res) => {
   try {
 
-    const { seoTitle, metaDescription, metaKeywords, slug, content, status, field } = req.body;
+    const {
+      seoTitle,
+      metaDescription,
+      metaKeywords,
+      slug,
+      content,
+      status,
+      field
+    } = req.body;
 
-    if (!seoTitle || !metaDescription || !slug || !content || !field || !metaKeywords) {
-      return res.status(400).json({ message: "All fields required" });
+
+    if (!seoTitle || !metaDescription || !slug || !content || !field) {
+      return res.status(400).json({ message: "Required fields missing" });
     }
 
-    // check slug duplicate except current page
+    // slug duplicate check (exclude current)
     const existing = await Location.findOne({
       slug,
       _id: { $ne: req.params.id }
@@ -105,27 +130,42 @@ router.put("/:id", verifyAdmin, async (req, res) => {
       return res.status(400).json({ message: "Slug already in use" });
     }
 
+    // ✅ SAFE UPDATE OBJECT (undefined overwrite avoid)
+    const updateData = {
+      seoTitle: seoTitle.trim(),
+      metaDescription,
+      slug: slug.toLowerCase().trim(),
+      content,
+      status: status || "published",
+      field
+    };
+
+    // metaKeywords only if provided
+    if (metaKeywords !== undefined) {
+      updateData.metaKeywords = metaKeywords || "";
+    }
+
     const updated = await Location.findByIdAndUpdate(
       req.params.id,
+      updateData,
       {
-        seoTitle,
-        metaDescription,
-        metaKeywords,
-        slug,
-        content,
-        status,
-        field   // ✅ added
-      },
-      { new: true }
+        new: true,
+        runValidators: true
+      }
     );
+
+    if (!updated) {
+      return res.status(404).json({ message: "Page not found" });
+    }
 
     res.json({
       success: true,
-      message: "Page updated",
+      message: "Page updated successfully",
       page: updated
     });
 
   } catch (err) {
+    console.error("UPDATE ERROR:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -143,9 +183,13 @@ router.delete("/:id", verifyAdmin, async (req, res) => {
       return res.status(404).json({ message: "Page not found" });
     }
 
-    res.json({ success: true, message: "Page deleted" });
+    res.json({
+      success: true,
+      message: "Page deleted successfully"
+    });
 
   } catch (err) {
+    console.error("DELETE ERROR:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -164,6 +208,7 @@ router.get("/public", async (req, res) => {
     res.json(pages);
 
   } catch (err) {
+    console.error("PUBLIC LIST ERROR:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -176,7 +221,7 @@ router.get("/page/:slug", async (req, res) => {
   try {
 
     const page = await Location.findOne({
-      slug: req.params.slug,
+      slug: req.params.slug.toLowerCase(),
       status: "published"
     });
 
@@ -187,6 +232,7 @@ router.get("/page/:slug", async (req, res) => {
     res.json(page);
 
   } catch (err) {
+    console.error("GET BY SLUG ERROR:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
