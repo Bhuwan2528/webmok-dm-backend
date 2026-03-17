@@ -24,6 +24,19 @@ const locationSchema = new mongoose.Schema({
     lowercase: true
   },
 
+  // ✅ NEW FIELD ADDED
+  field: {
+    type: String,
+    required: true,
+    enum: [
+      "web development",
+      "digital marketing",
+      "video editing",
+      "graphic designing",
+      "business development"
+    ]
+  },
+
   content: {
     type: String,
     required: true
@@ -31,11 +44,11 @@ const locationSchema = new mongoose.Schema({
 
   status: {
     type: String,
-    enum: ["draft","published"],
+    enum: ["draft", "published"],
     default: "published"
   }
 
-},{
+}, {
   timestamps: true
 });
 
