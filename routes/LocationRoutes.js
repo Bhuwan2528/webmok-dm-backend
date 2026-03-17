@@ -11,9 +11,9 @@ const router = express.Router();
 router.post("/", verifyAdmin, async (req, res) => {
   try {
 
-    const { seoTitle, metaDescription, slug, content, status } = req.body;
+    const { seoTitle, metaDescription, slug, content, status, field } = req.body;
 
-    if (!seoTitle || !metaDescription || !slug || !content) {
+    if (!seoTitle || !metaDescription || !slug || !content || !field) {
       return res.status(400).json({ message: "All fields required" });
     }
 
@@ -21,9 +21,7 @@ router.post("/", verifyAdmin, async (req, res) => {
     const existing = await Location.findOne({ slug });
 
     if (existing) {
-      return res.status(400).json({
-        message: "Slug already exists"
-      });
+      return res.status(400).json({ message: "Slug already exists" });
     }
 
     const page = new Location({
@@ -31,25 +29,17 @@ router.post("/", verifyAdmin, async (req, res) => {
       metaDescription,
       slug,
       content,
-      status
+      status,
+      field   // ✅ added
     });
 
     await page.save();
 
-    res.json({
-      success: true,
-      message: "Page created",
-      page
-    });
+    res.json({ success: true, message: "Page created", page });
 
   } catch (err) {
-
     console.error(err);
-
-    res.status(500).json({
-      message: "Server error"
-    });
-
+    res.status(500).json({ message: "Server error" });
   }
 });
 
@@ -67,11 +57,7 @@ router.get("/", verifyAdmin, async (req, res) => {
     res.json(pages);
 
   } catch (err) {
-
-    res.status(500).json({
-      message: "Server error"
-    });
-
+    res.status(500).json({ message: "Server error" });
   }
 });
 
@@ -85,19 +71,13 @@ router.get("/admin/:id", verifyAdmin, async (req, res) => {
     const page = await Location.findById(req.params.id);
 
     if (!page) {
-      return res.status(404).json({
-        message: "Page not found"
-      });
+      return res.status(404).json({ message: "Page not found" });
     }
 
     res.json(page);
 
   } catch (err) {
-
-    res.status(500).json({
-      message: "Server error"
-    });
-
+    res.status(500).json({ message: "Server error" });
   }
 });
 
@@ -108,12 +88,10 @@ router.get("/admin/:id", verifyAdmin, async (req, res) => {
 router.put("/:id", verifyAdmin, async (req, res) => {
   try {
 
-    const { seoTitle, metaDescription, slug, content, status } = req.body;
+    const { seoTitle, metaDescription, slug, content, status, field } = req.body;
 
-    if (!seoTitle || !metaDescription || !slug || !content) {
-      return res.status(400).json({
-        message: "All fields required"
-      });
+    if (!seoTitle || !metaDescription || !slug || !content || !field) {
+      return res.status(400).json({ message: "All fields required" });
     }
 
     // check slug duplicate except current page
@@ -123,9 +101,7 @@ router.put("/:id", verifyAdmin, async (req, res) => {
     });
 
     if (existing) {
-      return res.status(400).json({
-        message: "Slug already in use"
-      });
+      return res.status(400).json({ message: "Slug already in use" });
     }
 
     const updated = await Location.findByIdAndUpdate(
@@ -135,7 +111,8 @@ router.put("/:id", verifyAdmin, async (req, res) => {
         metaDescription,
         slug,
         content,
-        status
+        status,
+        field   // ✅ added
       },
       { new: true }
     );
@@ -147,11 +124,7 @@ router.put("/:id", verifyAdmin, async (req, res) => {
     });
 
   } catch (err) {
-
-    res.status(500).json({
-      message: "Server error"
-    });
-
+    res.status(500).json({ message: "Server error" });
   }
 });
 
@@ -165,47 +138,33 @@ router.delete("/:id", verifyAdmin, async (req, res) => {
     const page = await Location.findByIdAndDelete(req.params.id);
 
     if (!page) {
-      return res.status(404).json({
-        message: "Page not found"
-      });
+      return res.status(404).json({ message: "Page not found" });
     }
 
-    res.json({
-      success: true,
-      message: "Page deleted"
-    });
+    res.json({ success: true, message: "Page deleted" });
 
   } catch (err) {
-
-    res.status(500).json({
-      message: "Server error"
-    });
-
+    res.status(500).json({ message: "Server error" });
   }
 });
 
 
+// =============================
 // PUBLIC LIST FOR USERS
+// =============================
+router.get("/public", async (req, res) => {
+  try {
 
-router.get("/public", async (req,res)=>{
+    const pages = await Location
+      .find({ status: "published" })
+      .sort({ createdAt: -1 });
 
-  try{
+    res.json(pages);
 
-    const pages = await Location.find({
-      status:"published"
-    }).sort({createdAt:-1})
-
-    res.json(pages)
-
-  }catch(err){
-
-    res.status(500).json({
-      message:"Server error"
-    })
-
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
   }
-
-})
+});
 
 
 // =============================
@@ -220,19 +179,13 @@ router.get("/page/:slug", async (req, res) => {
     });
 
     if (!page) {
-      return res.status(404).json({
-        message: "Page not found"
-      });
+      return res.status(404).json({ message: "Page not found" });
     }
 
     res.json(page);
 
   } catch (err) {
-
-    res.status(500).json({
-      message: "Server error"
-    });
-
+    res.status(500).json({ message: "Server error" });
   }
 });
 
