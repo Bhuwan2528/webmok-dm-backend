@@ -11,9 +11,9 @@ const router = express.Router();
 router.post("/", verifyAdmin, async (req, res) => {
   try {
 
-    const { seoTitle, metaDescription, slug, content, status, field } = req.body;
+    const { seoTitle, metaDescription, metaKeywords, slug, content, status, field } = req.body;
 
-    if (!seoTitle || !metaDescription || !slug || !content || !field) {
+    if (!seoTitle || !metaDescription || !slug || !content || !field || !metaKeywords) {
       return res.status(400).json({ message: "All fields required" });
     }
 
@@ -27,6 +27,7 @@ router.post("/", verifyAdmin, async (req, res) => {
     const page = new Location({
       seoTitle,
       metaDescription,
+      metaKeywords,
       slug,
       content,
       status,
@@ -88,9 +89,9 @@ router.get("/admin/:id", verifyAdmin, async (req, res) => {
 router.put("/:id", verifyAdmin, async (req, res) => {
   try {
 
-    const { seoTitle, metaDescription, slug, content, status, field } = req.body;
+    const { seoTitle, metaDescription, metaKeywords, slug, content, status, field } = req.body;
 
-    if (!seoTitle || !metaDescription || !slug || !content || !field) {
+    if (!seoTitle || !metaDescription || !slug || !content || !field || !metaKeywords) {
       return res.status(400).json({ message: "All fields required" });
     }
 
@@ -109,6 +110,7 @@ router.put("/:id", verifyAdmin, async (req, res) => {
       {
         seoTitle,
         metaDescription,
+        metaKeywords,
         slug,
         content,
         status,
