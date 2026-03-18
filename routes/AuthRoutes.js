@@ -17,7 +17,7 @@ router.post("/login",(req,res)=>{
         const token = jwt.sign(
             {admin:true},
             process.env.JWT_SECRET,
-            {expiresIn:"2h"}
+            {expiresIn:"1d"}
         )
 
         return res.json({
