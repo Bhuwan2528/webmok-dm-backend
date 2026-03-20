@@ -19,7 +19,11 @@ const entrySchema = new mongoose.Schema({
 
     placementText: {
       type: String
-    }
+    },
+
+    heroImg: {
+      type: String
+    },
   },
 
 
